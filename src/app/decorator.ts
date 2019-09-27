@@ -30,74 +30,29 @@ export class Mapper<T> {
 
     }
 
+/*
     console.log(nested(source,'pricing'));
     console.log(nested(source,'pricing.currency'));
     console.log(nested(source,'pricing.currency.symbol'));
+  */
 
-    const iterate = (from : object, to : object, depth : number = 0) => {
+    /** Copy all values */
+    this.target = source;
 
-      Object.keys(from).forEach((key : string) => {
+    /** Iterate through mapped values */
+    Object.keys(this.mapping).forEach((key : string) => {
 
-        /** If property is to be removed, skip iteration */
-        if(this.exclusion.indexOf(key) !== -1) {
-          
-          return;
+      let rewriteParameter = this.mapping[key];
+      let keyParameter = key.split('.')[key.split('.').length - 1];
+      let workingSchema = nested(this.target,key);
 
-        }
-
-        /** If property is mapped, rewrite it */
-        if(this.mapping.hasOwnProperty(key)) {
-          
-          /** If there is a blocking key, throw error */
-          if(from.hasOwnProperty(this.mapping[key])) {
-
-            throw new Error(`Duplicate property detected for '${key} => ${this.mapping[key]}'! Object cannot be mapped.`);
-            
-          }
-
-          to[this.mapping[key]] = from[key];
-          
-        } else {
-
-          to[key] = from[key];
-
-        }
-
-      });
-
-    }
-
-    return this.target;
-
-    Object.keys(source).forEach((key : string) => {
-
-      /** If property is to be removed, skip iteration */
-      if(this.exclusion.indexOf(key) !== -1) {
-        
-        return;
-
-      }
-
-      /** If property is mapped, rewrite it */
-      if(this.mapping.hasOwnProperty(key)) {
-        
-        /** If there is a blocking key, throw error */
-        if(source.hasOwnProperty(this.mapping[key])) {
-
-          throw new Error(`Duplicate property detected for '${key} => ${this.mapping[key]}'! Object cannot be mapped.`);
-          
-        }
-
-        this.target[this.mapping[key]] = source[key];
-        
-      } else {
-
-        this.target[key] = source[key];
-
-      }
+      workingSchema[rewriteParameter] = workingSchema[keyParameter];
+      delete workingSchema[keyParameter];
 
     });
 
+    return this.target;
+    
   }
 
 }

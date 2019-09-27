@@ -2,10 +2,10 @@ import { propertyRemap, propertyRemove } from './decorator';
 
 export class Model {
 
-  @propertyRemap('name')
   title : string;
   @propertyRemap('salesPrices')
   @propertyRemap('tagPriceNumeric', 'tagPrice')
+  @propertyRemap('taxNumeric', 'currency.tax')
   pricing : {
     tagPrice : number;
     currency : {
