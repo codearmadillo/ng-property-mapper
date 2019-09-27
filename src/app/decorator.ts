@@ -2,18 +2,27 @@ import { Model } from './models';
 
 export class Mapper<T> {
 
+  exclusion : string[];
   mapping: any;
   target: any;
 
   constructor(type : { new () : T } ) {
     this.target = new type();
     this.mapping = this.target.constructor.mappingMatrix;
+    this.exclusion = this.target.constructor.mappingExclusionMatrix;
   }
 
   map(source) : any {
 
     Object.keys(source).forEach((key : string) => {
       
+      /** If property is to be removed, skip iteration */
+      if(this.exclusion.indexOf(key) !== -1) {
+        
+        return;
+
+      }
+
       /** If property is mapped, rewrite it */
       if(this.mapping.hasOwnProperty(key)) {
         
@@ -39,11 +48,19 @@ export class Mapper<T> {
   }
 
 }
-export const propertyMap = (source : string) => {
+export const propertyRemap = (source : string) => {
   return (target : object, property : string) => {
     if(!target.constructor['mappingMatrix']){
       target.constructor['mappingMatrix'] = {};
     } 
     target.constructor['mappingMatrix'][property] = source;
+  }
+}
+export const propertyRemove = () => {
+  return (target : object, property : string) => {
+    if(!target.constructor['mappingExclusionMatrix']) {
+      target.constructor['mappingExclusionMatrix'] = [];
+    }
+    target.constructor['mappingExclusionMatrix'].push(property);
   }
 }

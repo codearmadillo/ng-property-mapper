@@ -1,10 +1,11 @@
-import { propertyMap } from './decorator';
+import { propertyRemap, propertyRemove } from './decorator';
 
 export class Model {
 
-  @propertyMap('name') title : string;
+  @propertyRemap('name') title : string;
+
   description : string;
-  obsolete : boolean;
+  @propertyRemove() obsolete : boolean;
 
 }
 export const data : Model[] = [
