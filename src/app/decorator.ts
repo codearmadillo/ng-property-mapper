@@ -9,7 +9,6 @@ export class Mapper<T> {
 
   constructor(type : { new () : T } ) {
 
-    this.test = new type();
     this.target = new type();
     this.mapping = this.target.constructor.mappingMatrix ? this.target.constructor.mappingMatrix : {};
     this.exclusion = this.target.constructor.mappingExclusionMatrix ? this.target.constructor.mappingExclusionMatrix : [];
@@ -18,20 +17,57 @@ export class Mapper<T> {
 
   map(source) : any {
 
-    const mapNestedSchema = (from : object, to : object, trail : string = null) => {
+    const nested = (schema : object, key : string) => {
+
+      let keys = key.split('.');
+      let firstKey = keys.shift();
+
+      if(keys.length > 0) {
+        return nested(schema[firstKey], keys.join('.'));
+      }
+
+      return schema;
+
+    }
+
+    console.log(nested(source,'pricing'));
+    console.log(nested(source,'pricing.currency'));
+    console.log(nested(source,'pricing.currency.symbol'));
+
+    const iterate = (from : object, to : object, depth : number = 0) => {
 
       Object.keys(from).forEach((key : string) => {
 
-        let trailFormatted = (trail ? trail + '.' : '') + key;
-        if(this.mapping.hasOwnProperty(trailFormatted))
+        /** If property is to be removed, skip iteration */
+        if(this.exclusion.indexOf(key) !== -1) {
+          
+          return;
+
+        }
+
+        /** If property is mapped, rewrite it */
+        if(this.mapping.hasOwnProperty(key)) {
+          
+          /** If there is a blocking key, throw error */
+          if(from.hasOwnProperty(this.mapping[key])) {
+
+            throw new Error(`Duplicate property detected for '${key} => ${this.mapping[key]}'! Object cannot be mapped.`);
+            
+          }
+
+          to[this.mapping[key]] = from[key];
+          
+        } else {
+
+          to[key] = from[key];
+
+        }
 
       });
-      
-    } 
 
-    mapNestedSchema(source, this.test);
+    }
 
-    console.log(this.test);
+    return this.target;
 
     Object.keys(source).forEach((key : string) => {
 
@@ -62,18 +98,16 @@ export class Mapper<T> {
 
     });
 
-    return this.target;
-
   }
 
 }
-export const propertyRemap = (source : string, nestedKey? : string) => {
+export const propertyRemap = (source : string, nestedTarget? : string) => {
   return (target : object, property : string) => {
     if(!target.constructor['mappingMatrix']){
       target.constructor['mappingMatrix'] = {};
-    } 
-    if(nestedKey) {
-      target.constructor['mappingMatrix'][nestedKey] = source;
+    }
+    if(nestedTarget) {
+      target.constructor['mappingMatrix'][property + '.' + nestedTarget] = source;
     } else {
       target.constructor['mappingMatrix'][property] = source;
     }

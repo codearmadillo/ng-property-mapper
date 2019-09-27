@@ -14,7 +14,7 @@ export class AppComponent  {
       data = data.map((entry : Model) => {
         return new Mapper(Model).map(entry);
       });
-      // console.log(data[0]);
+      console.log(data[0]);
     });
   }
 }
