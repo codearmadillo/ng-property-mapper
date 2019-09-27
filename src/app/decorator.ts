@@ -5,17 +5,36 @@ export class Mapper<T> {
   exclusion : string[];
   mapping: any;
   target: any;
+  test : any;
 
   constructor(type : { new () : T } ) {
+
+    this.test = new type();
     this.target = new type();
-    this.mapping = this.target.constructor.mappingMatrix;
-    this.exclusion = this.target.constructor.mappingExclusionMatrix;
+    this.mapping = this.target.constructor.mappingMatrix ? this.target.constructor.mappingMatrix : {};
+    this.exclusion = this.target.constructor.mappingExclusionMatrix ? this.target.constructor.mappingExclusionMatrix : [];
+
   }
 
   map(source) : any {
 
-    Object.keys(source).forEach((key : string) => {
+    const mapNestedSchema = (from : object, to : object, trail : string = null) => {
+
+      Object.keys(from).forEach((key : string) => {
+
+        let trailFormatted = (trail ? trail + '.' : '') + key;
+        if(this.mapping.hasOwnProperty(trailFormatted))
+
+      });
       
+    } 
+
+    mapNestedSchema(source, this.test);
+
+    console.log(this.test);
+
+    Object.keys(source).forEach((key : string) => {
+
       /** If property is to be removed, skip iteration */
       if(this.exclusion.indexOf(key) !== -1) {
         
@@ -48,15 +67,19 @@ export class Mapper<T> {
   }
 
 }
-export const propertyRemap = (source : string) => {
+export const propertyRemap = (source : string, nestedKey? : string) => {
   return (target : object, property : string) => {
     if(!target.constructor['mappingMatrix']){
       target.constructor['mappingMatrix'] = {};
     } 
-    target.constructor['mappingMatrix'][property] = source;
+    if(nestedKey) {
+      target.constructor['mappingMatrix'][nestedKey] = source;
+    } else {
+      target.constructor['mappingMatrix'][property] = source;
+    }
   }
 }
-export const propertyRemove = () => {
+export const propertyRemove = (source? : string) => {
   return (target : object, property : string) => {
     if(!target.constructor['mappingExclusionMatrix']) {
       target.constructor['mappingExclusionMatrix'] = [];

@@ -4,19 +4,19 @@ export class Model {
 
   @propertyRemap('name') title : string;
 
-  description : string;
-  @propertyRemove() obsolete : boolean;
+  @propertyRemap('newPrice', 'pricing.tagPrice')
+  pricing : {
+    tagPrice : number;
+    currencySymbol : string;
+  }
 
 }
 export const data : Model[] = [
   {
     title : 'First entry',
-    description : 'First entry description',
-    obsolete : false
-  },
-  {
-    title : 'Second entry',
-    description : 'Second entry description',
-    obsolete : true
+    pricing: {
+      tagPrice : 133.99,
+      currencySymbol: 'USD'
+    }
   }
 ]
