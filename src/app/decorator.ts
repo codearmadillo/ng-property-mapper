@@ -34,6 +34,15 @@ export class Mapper<T> {
 
     this.target = source;
 
+    this.exclusion.forEach((key : string) => {
+
+      let workingSchema = nested(this.target, key);
+      let keyParameter = key.split('.')[key.split('.').length - 1];
+      
+      delete workingSchema[keyParameter];
+
+    });
+
     /** Iterate through mapped values */
     Object.keys(this.mapping).forEach((key : string) => {
 
