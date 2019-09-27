@@ -9,6 +9,7 @@ export class Mapper<T> {
 
   constructor(type : { new () : T } ) {
 
+    this.test = new type();
     this.target = new type();
     this.mapping = this.target.constructor.mappingMatrix ? this.target.constructor.mappingMatrix : {};
     this.exclusion = this.target.constructor.mappingExclusionMatrix ? this.target.constructor.mappingExclusionMatrix : [];
@@ -17,6 +18,7 @@ export class Mapper<T> {
 
   map(source) : any {
 
+    /** Returns nested schema reference */
     const nested = (schema : object, key : string) => {
 
       let keys = key.split('.');
@@ -30,13 +32,8 @@ export class Mapper<T> {
 
     }
 
-/*
-    console.log(nested(source,'pricing'));
-    console.log(nested(source,'pricing.currency'));
-    console.log(nested(source,'pricing.currency.symbol'));
-  */
+  caches
 
-    /** Copy all values */
     this.target = source;
 
     /** Iterate through mapped values */
@@ -46,7 +43,7 @@ export class Mapper<T> {
       let keyParameter = key.split('.')[key.split('.').length - 1];
       let workingSchema = nested(this.target,key);
 
-      workingSchema[rewriteParameter] = workingSchema[keyParameter];
+      this.target[rewriteParameter] = workingSchema[keyParameter];
       delete workingSchema[keyParameter];
 
     });
@@ -68,11 +65,15 @@ export const propertyRemap = (source : string, nestedTarget? : string) => {
     }
   }
 }
-export const propertyRemove = (source? : string) => {
+export const propertyRemove = (nestedTarget? : string) => {
   return (target : object, property : string) => {
     if(!target.constructor['mappingExclusionMatrix']) {
       target.constructor['mappingExclusionMatrix'] = [];
     }
-    target.constructor['mappingExclusionMatrix'].push(property);
+    if(nestedTarget) {
+      target.constructor['mappingExclusionMatrix'].push(property + '.' + nestedTarget);
+    } else {
+      target.constructor['mappingExclusionMatrix'].push(property);
+    }
   }
 }
