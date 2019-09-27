@@ -32,8 +32,6 @@ export class Mapper<T> {
 
     }
 
-  caches
-
     this.target = source;
 
     /** Iterate through mapped values */
@@ -43,7 +41,7 @@ export class Mapper<T> {
       let keyParameter = key.split('.')[key.split('.').length - 1];
       let workingSchema = nested(this.target,key);
 
-      this.target[rewriteParameter] = workingSchema[keyParameter];
+      workingSchema[rewriteParameter] = workingSchema[keyParameter];
       delete workingSchema[keyParameter];
 
     });
