@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { DataService } from './data.service';
-import { Model } from './models';
+import { Model, Submodel } from './models';
 import { Mapper } from './decorator';
 
 @Component({
@@ -12,7 +12,10 @@ export class AppComponent  {
   constructor(service : DataService) {
     service.get().subscribe((data : Model[]) => {
       data = data.map((entry : Model) => {
-        return new Mapper(Model).map(entry);
+        let main = new Mapper(Model).map(entry);
+        main.salesPrices = new Mapper(Submodel).map(entry.pricing);
+
+        return main;
       });
       console.log(data[0]);
     });

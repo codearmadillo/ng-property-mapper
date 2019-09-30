@@ -9,7 +9,6 @@ export class Mapper<T> {
 
   constructor(type : { new () : T } ) {
 
-    this.test = new type();
     this.target = new type();
     this.mapping = this.target.constructor.mappingMatrix ? this.target.constructor.mappingMatrix : {};
     this.exclusion = this.target.constructor.mappingExclusionMatrix ? this.target.constructor.mappingExclusionMatrix : [];
@@ -18,40 +17,33 @@ export class Mapper<T> {
 
   map(source) : any {
 
-    /** Returns nested schema reference */
-    const nested = (schema : object, key : string) => {
-
-      let keys = key.split('.');
-      let firstKey = keys.shift();
-
-      if(keys.length > 0) {
-        return nested(schema[firstKey], keys.join('.'));
-      }
-
-      return schema;
-
-    }
-
-    this.target = source;
-
-    this.exclusion.forEach((key : string) => {
-
-      let workingSchema = nested(this.target, key);
-      let keyParameter = key.split('.')[key.split('.').length - 1];
+    Object.keys(source).forEach((key : string) => {
       
-      delete workingSchema[keyParameter];
+      /** If property is mapped, rewrite it */
+      if(this.mapping.hasOwnProperty(key)) {
+        
+        /** If there is a blocking key, throw error */
+        if(source.hasOwnProperty(this.mapping[key])) {
 
-    });
+          throw new Error(`Duplicate property detected for '${key} => ${this.mapping[key]}'! Object cannot be mapped.`);
+          
+        }
 
-    /** Iterate through mapped values */
-    Object.keys(this.mapping).forEach((key : string) => {
+        if(this.exclusion.indexOf(key) === -1) {
 
-      let rewriteParameter = this.mapping[key];
-      let keyParameter = key.split('.')[key.split('.').length - 1];
-      let workingSchema = nested(this.target,key);
+          this.target[this.mapping[key]] = source[key];
 
-      workingSchema[rewriteParameter] = workingSchema[keyParameter];
-      delete workingSchema[keyParameter];
+        }
+        
+      } else {
+
+        if(this.exclusion.indexOf(key) === -1) {
+
+          this.target[key] = source[key];
+        
+        }
+
+      }
 
     });
 
@@ -60,27 +52,19 @@ export class Mapper<T> {
   }
 
 }
-export const propertyRemap = (source : string, nestedTarget? : string) => {
+export const propertyRemap = (source : string) => {
   return (target : object, property : string) => {
     if(!target.constructor['mappingMatrix']){
       target.constructor['mappingMatrix'] = {};
     }
-    if(nestedTarget) {
-      target.constructor['mappingMatrix'][property + '.' + nestedTarget] = source;
-    } else {
-      target.constructor['mappingMatrix'][property] = source;
-    }
+    target.constructor['mappingMatrix'][property] = source;
   }
 }
-export const propertyRemove = (nestedTarget? : string) => {
+export const propertyRemove = () => {
   return (target : object, property : string) => {
     if(!target.constructor['mappingExclusionMatrix']) {
       target.constructor['mappingExclusionMatrix'] = [];
     }
-    if(nestedTarget) {
-      target.constructor['mappingExclusionMatrix'].push(property + '.' + nestedTarget);
-    } else {
-      target.constructor['mappingExclusionMatrix'].push(property);
-    }
+    target.constructor['mappingExclusionMatrix'].push(property);
   }
 }
